@@ -3,6 +3,17 @@
 
 <head>
     <link rel="stylesheet" href="css\style.css" />
+    <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>    
+</head>
+
+<body>
 
     <div class="top-bar">
         <span>ID: ____ </span> <span>名前: ____</span>
@@ -12,20 +23,13 @@
             </div>
         </span>
     </div>
-</head>
-
-<body>
 
     <div class="building-wrap">
-        <a href="listTwo.html" class="img-3D" hover-tooltip="3F: A, B, C">
-            <div id="three"></div>
+        <a href="listTwo.html" hover-tooltip="3F: A, B, C">
+            <div id="app"></div>
         </a>
     </div>
-
-
-    <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
-    <script src="https://unpkg.com/three@0.160.0/examples/js/controls/OrbitControls.js"></script>
-    <script src="js/building.js"></script>
+    <script type="module" src="js/building.js"></script>
 </body>
 
 </html>
