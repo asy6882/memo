@@ -164,6 +164,13 @@ h1.location-title-info:after {
   vertical-align: middle;
 }
 
+.location-area-info{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+}
+
 /* Selector group */
 .floor-form-group {
   display: flex;
@@ -171,6 +178,7 @@ h1.location-title-info:after {
   align-items: center;
   gap: 16px;
   margin-top: 24px;
+  margin-bottom: 10px;
 
 }
 
@@ -208,10 +216,10 @@ h1.location-title-info:after {
   margin: 8px auto 0;
   flex-wrap: nowrap;
   min-width: 0;
-  padding-top: 30px;
+  padding-top: 0;
   padding-bottom: 30px;
   padding-right: 30px;
-  /* background-color: #f5f5f5; */
+  /* background-color: #fe8989; */
 }
 
 /* 평면도는 남는 영역 전체 사용 + 강제확대 금지 */
