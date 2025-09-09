@@ -91,15 +91,7 @@ body {
 	margin-top: 50px;
 }
 
-#three {
-  display: block;
-  width: min(90vw, 960px);
-  height: 520px; 
-  margin: 40px auto;
-  position: relative;
-  border-radius: 12px; 
-  overflow: hidden;   
-}
+#app { position: fixed; inset: 0; background: linear-gradient(#ffffff, #35385b); }
 
 .btn-list {
 	text-align: center;
@@ -168,7 +160,6 @@ button:hover {
 .tooltip {
 	position: fixed;
 	pointer-events: none;
-	/* 마우스 이벤트 통과 */
 	background: rgba(39, 39, 39, 0.9);
 	color: #fff;
 	padding: 6px 10px;
@@ -177,7 +168,6 @@ button:hover {
 	z-index: 9999;
 	white-space: nowrap;
 	transform: translate(10px, 10px);
-	/* 커서 옆 오프셋 */
 	opacity: 0;
 	transition: opacity 0.15s;
 }
