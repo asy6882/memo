@@ -243,5 +243,92 @@
     </div>
   </div>
 </body>
+<script>
+    const layout = document.getElementById('layout');
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("mode") === "split") layout.classList.add("show-list");
 
+    const floorImage = document.getElementById('floorImage');
+    if (floorImage) floorImage.addEventListener('click', () => layout.classList.add('show-list'));
+    const closeRightBtn = document.getElementById('closeRightBtn');
+    if (closeRightBtn) closeRightBtn.addEventListener('click', () => layout.classList.remove('show-list'));
+
+    const modal = document.getElementById('formModal');
+    const frame = document.getElementById('formFrame');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalCloseBtn = document.getElementById('modalCloseBtn');
+
+    function openForm(mode, data) {
+      const qs = new URLSearchParams({ mode });
+      if (data && typeof data === 'object') {
+        Object.entries(data).forEach(([k, v]) => {
+          if (v !== undefined && v !== null) qs.append(k, String(v));
+          document.body.classList.add('no-scroll');
+        });
+      }
+      frame.src = 'asset_form.html?' + qs.toString();
+      modalTitle.textContent = mode === 'edit' ? '編集' : '登録';
+      modal.classList.add('show');
+      modal.setAttribute('aria-hidden', 'false');
+    }
+
+    function closeForm() {
+      modal.classList.remove('show');
+      modal.setAttribute('aria-hidden', 'true');
+      frame.src = 'about:blank';
+      document.body.classList.remove('no-scroll');
+    }
+
+    modalCloseBtn.addEventListener('click', closeForm);
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && modal.classList.contains('show')) closeForm(); });
+    modal.addEventListener('click', (e) => { if (e.target === modal) closeForm(); });
+
+    function rowToData(tr) {
+      const td = tr.querySelectorAll('td');
+      return {
+        product_code: td[1]?.textContent.trim(),
+        category: td[2]?.textContent.trim(),
+        item: td[3]?.textContent.trim(),
+        product_name: td[4]?.textContent.trim(),
+        building: td[5]?.textContent.trim(),
+        floor: td[6]?.textContent.trim(),
+        area: td[7]?.textContent.trim(),
+        number: td[8]?.textContent.trim(),
+        price: td[9]?.textContent.trim(),
+        manufacturer: td[10]?.textContent.trim(),
+        quantity: td[11]?.textContent.trim()
+      };
+    }
+
+    document.getElementById('createBtn').addEventListener('click', () => {
+      const building = document.getElementById('building')?.value || '';
+      const floor = document.getElementById('floor')?.value || '';
+      openForm('create', { building, floor });
+    });
+
+    document.getElementById('resultTable').addEventListener('change', (e) => {
+      if (e.target && e.target.name === 'pick') {
+        const tr = e.target.closest('tr');
+        const data = rowToData(tr);
+        openForm('edit', data);
+      }
+    });
+
+    document.getElementById('areaList').addEventListener('click', (e) => {
+      const cell = e.target.closest('td');
+      if (!cell) return;
+      const area = cell.getAttribute('data-area') || cell.textContent.trim();
+      layout.classList.add('show-list');
+      document.getElementById('categorySelect').value = '';
+      document.getElementById('itemSelect').value = '';
+      document.getElementById('productName').value = '';
+      const rows = document.querySelectorAll('#resultTable tbody tr');
+      rows.forEach(r => {
+        const a = r.children[7]?.textContent.trim();
+        r.style.display = !area || a === area ? '' : 'none';
+      });
+    });
+  </script>
+</body>
 </html>
+
