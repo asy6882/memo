@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>固定資産</title>
+  <style>
+    
+    body {
+      font-family: "Meiryo", sans-serif;
+      background: #fff;
+      margin: 20px;
+      color: #333;
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 25px;
+      text-decoration: underline;
+    }
+    table { width: 100%; border-collapse: collapse; }
+    td { padding: 8px 5px; vertical-align: middle; }
+    td.label {
+      width: 130px;
+      text-align: right;
+      font-weight: bold;
+      white-space: nowrap;
+    }
+    input[type="text"],
+    input[type="date"],
+    input[type="number"],
+    select {
+      width: 95%;
+      padding: 6px 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+      font-family: inherit;
+      font-size: 0.95em;
+      background: #fff;
+    }
+    input[type="text"]::placeholder,
+    input[type="date"]::placeholder { color: #aaa; font-size: 0.9em; }
+    input[type="date"]::-webkit-calendar-picker-indicator { cursor: pointer; opacity: 0.7; }
+    input[type="date"]::-webkit-calendar-picker-indicator:hover { opacity: 1; }
+    .required { color: red; margin-left: 4px; }
+    .button-area { margin-top: 30px; text-align: center; }
+    button {
+      width: 100px; height: 38px; margin: 8px;
+      border: none; font-weight: bold; border-radius: 4px; cursor: pointer; transition: 0.2s;
+    }
+    .btn-clear, .btn-register, .btn-update, .btn-delete { background: #bce1bf; }
+    button:hover { opacity: 0.85; }
+    .right { text-align: right; }
+    .readonly { background-color: #bce1bf; }
+  </style>
+</head>
+<body>
+  <div class="">
+    <h2>固定資産</h2>
+    <table>
+      <tr>
+        <td class="label">コード<span class="required">*</span></td>
+        <td><input id="code" type="text" placeholder="例：A123"></td>
+        <td class="label">製造会社<span class="required">*</span></td>
+        <td><input id="maker" type="text" placeholder="メーカー名"></td>
+                <td class="label">カテゴリー</td>
+        <td>
+          <select id="category">
+            <option value="">選択してください</option>
+            <option value="A">A</option>
+            <option value="B">B</option>
+            <option value="C">C</option>
+          </select>
+        </td>
+      </tr>
+
+      <tr>
+        <td class="label">品目<span class="required">*</span></td>
+        <td><input id="item" type="text" placeholder="品目名"></td>
+        <td class="label">購入日<span class="required">*</span></td>
+        <td><input id="purchaseDate" type="date" name="myDate"></td>
+        <td class="label">保存位置<span class="required">*</span></td>
+        <td><input id="storage" type="text" placeholder="倉庫/部屋"></td>
+      </tr>
+
+      <tr>
+        <td class="label">商品名1<span class="required">*</span></td>
+        <td><input id="name1" type="text" placeholder="商品名"></td>
+        <td class="label">購入価格<span class="required">*</span></td>
+        <td><input id="purchasePrice" type="number" placeholder="円" class="right"></td>
+        <td class="label">階<span class="required">*</span></td>
+        <td><input id="floor" type="text" placeholder="例：3F"></td>
+      </tr>
+
+      <tr>
+        <td class="label">商品名2</td>
+        <td><input id="name2" type="text" placeholder="商品名"></td>
+        <td class="label">配達費</td>
+        <td><input id="delivery" type="number" placeholder="円" class="right"></td>
+      <td class="label">エリア</td>
+        <td><input id="area" type="text" placeholder="例：A"></td>
+      </tr>
+
+      <tr>
+        <td class="label">規格1</td>
+        <td><input id="spec1" type="text" placeholder="規格"></td>
+        <td class="label">外</td>
+        <td><input id="extraCost" type="number" placeholder="円" class="right"></td>
+        <td class="label">番号<span class="required">*</span></td>
+        <td><input id="number" type="text" placeholder="番号"></td>
+      </tr>
+
+      <tr>
+        <td class="label">規格2</td>
+        <td><input id="spec2" type="text" placeholder="規格"></td>
+        <td class="label">数量<span class="required">*</span></td>
+        <td><input id="qty" type="number" placeholder="数量" class="right"></td>
+        <td class="label">総額</td>
+        <td><input id="total" type="number" class="right readonly" readonly></td>
+      </tr>
+
+      <tr>
+        <!-- <td class="label">規格3</td>
+        <td><input id="spec3" type="text" placeholder="規格"></td> -->
+        <td class="label">サイズ</td>
+        <td><input id="size" type="text" placeholder="単位まで"></td>
+        
+        <td class="label">消費税</td>
+        <td>
+          <select id="taxRate">
+            <option value="">選択してください</option>
+            <option value="0.03">3%</option>
+            <option value="0.05">5%</option>
+            <option value="0.08">8%</option>
+            <option value="0.10">10%</option>
+          </select>
+        </td>
+    </table>
+
+    <div class="button-area">
+      <button class="btn-clear" id="btnClear">CLEAR</button>
+      <button class="btn-register" id="btnRegister">登録</button>
+      <button class="btn-update" id="btnUpdate">修正</button>
+      <button class="btn-delete" id="btnDelete">削除</button>
+    </div>
+  </div>
+
+  <script>
+    // ====== 1) 더미데이터 자동 채움 (sessionStorage / postMessage / URL 쿼리) ======
+    const FIELDS = {
+      code: 'code',
+      category: 'category',
+      item: 'item',
+      name: 'name1',        // payload.name → 商品名1
+      building: 'building',
+      floor: 'floor',
+      area: 'area',
+      number: 'number',
+      price: 'amount',      // payload.price → 金額
+      maker: 'maker',
+      qty: 'qty'
+    };
+
+    function setVal(id, v){ const el = document.getElementById(id); if(el && v != null) el.value = v; }
+    function getNumber(id){ const v = parseFloat(document.getElementById(id)?.value || ''); return isNaN(v) ? 0 : v; }
+
+    function fillFromPayload(payload){
+      if(!payload) return;
+      for (const k in FIELDS){
+        if (Object.hasOwn(payload, k)) setVal(FIELDS[k], payload[k]);
+      }
+      // 총액 자동 재계산
+      recalcTotal();
+    }
+
+    function loadFromSession(){
+      try {
+        const raw = sessionStorage.getItem('assetFormPayload');
+        return raw ? JSON.parse(raw) : null;
+      } catch(e){ return null; }
+    }
+
+    function loadFromQuery(){
+      const p = new URLSearchParams(location.search);
+      const keys = Object.keys(FIELDS);
+      const obj = {};
+      keys.forEach(k => { const v = p.get(k); if (v !== null) obj[k] = v; });
+      return Object.keys(obj).length ? obj : null;
+    }
+
+    // postMessage 수신(부모가 안전망으로 보내줄 수 있음)
+    window.addEventListener('message', (e) => {
+      if (e.origin !== location.origin) return;
+      if (e.data?.type === 'assetFormPayload') fillFromPayload(e.data.payload);
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const fromSession = loadFromSession();
+      if (fromSession) fillFromPayload(fromSession);
+      else {
+        const fromQuery = loadFromQuery();
+        if (fromQuery) fillFromPayload(fromQuery);
+      }
+    });
+
+    // ====== 2) 자동 계산: 総額 = 購入価格 + 配達費 + 外 + 消費税 ======
+    const calcInputs = ['purchasePrice','delivery','extraCost','taxRate'];
+    calcInputs.forEach(id => {
+      const el = document.getElementById(id);
+      el?.addEventListener('input', recalcTotal);
+      el?.addEventListener('change', recalcTotal);
+    });
+
+    function recalcTotal(){
+      const base = getNumber('purchasePrice');   // 기본 가격
+      const delivery = getNumber('delivery');    // 운송비
+      const extra = getNumber('extraCost');      // 기타비용(外)
+      const rate = parseFloat(document.getElementById('taxRate')?.value || '0') || 0;
+
+      const preTax = base + delivery + extra;
+      const tax = preTax * rate;
+      const total = Math.round((preTax + tax) * 100) / 100;
+
+      setVal('total', total);
+    }
+
+    // ====== 3) 버튼 동작 (데모) ======
+    document.getElementById('btnClear')?.addEventListener('click', () => {
+      document.querySelectorAll('input, select').forEach(el => {
+        if (el.id === 'total') { el.value = ''; return; }
+        if (el.type === 'date' || el.type === 'text' || el.type === 'number') el.value = '';
+        if (el.tagName === 'SELECT') el.value = '';
+      });
+    });
+
+    document.getElementById('btnRegister')?.addEventListener('click', () => {
+      const data = collectForm();
+      window.parent?.postMessage({ type: 'assetSaved', payload: data }, location.origin);
+      alert('登録（デモ）: コンソールに出力しました。');
+      console.log('REGISTER (dummy):', data);
+    });
+
+    document.getElementById('btnUpdate')?.addEventListener('click', () => {
+      const data = collectForm();
+      window.parent?.postMessage({ type: 'assetUpdated', payload: data }, location.origin);
+      alert('修正（デモ）: コンソールに出力しました。');
+      console.log('UPDATE (dummy):', data);
+    });
+
+    document.getElementById('btnDelete')?.addEventListener('click', () => {
+      const code = document.getElementById('code')?.value || '';
+      window.parent?.postMessage({ type: 'assetDeleted', payload: { code } }, location.origin);
+      alert('削除（デモ）');
+      console.log('DELETE (dummy):', { code });
+    });
+
+    function collectForm(){
+      const val = id => document.getElementById(id)?.value ?? '';
+      return {
+        code: val('code'),
+        maker: val('maker'),
+        extraCost: Number(val('extraCost') || 0),
+        item: val('item'),
+        amount: Number(val('amount') || 0),
+        storage: val('storage'),
+        name1: val('name1'),
+        purchaseDate: val('purchaseDate'),
+        floor: val('floor'),
+        name2: val('name2'),
+        purchasePrice: Number(val('purchasePrice') || 0),
+        number: val('number'),
+        spec1: val('spec1'),
+        delivery: Number(val('delivery') || 0),
+        total: Number(val('total') || 0),
+        category: val('category'),
+        area: val('area'),
+        spec2: val('spec2'),
+        qty: Number(val('qty') || 0),
+        building: val('building'),
+        spec3: val('spec3'),
+        size: val('size'),
+        taxRate: Number(val('taxRate') || 0)
+      };
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>在庫フロア</title>
+  <link rel="stylesheet" href="css/style2.css">
+</head>
+<body>
+  <div class="top-bar">
+    <span>ID: ____ </span>
+    <span>名前: ____</span>
+    <span>
+      <div class="btn-logout">
+        <button type="button" id="logoutBtn" onclick="location.href='login.html'">LOGOUT</button>
+      </div>
+    </span>
+  </div>
+
+  <div class="layout" id="layout">
+    <section class="panel panel-left">
+      <button class="back-btn" onclick="location.href='building.html'">
+        <img src="img/arrow.png" alt="戻る">
+      </button>
+
+      <div class="floor-form-group">
+        <!-- <div class="form-building">
+          <div class="building-group">
+            <select id="building" name="building">
+              <option value="">建物</option>
+              <option value="aa">aa</option>
+              <option value="bb">bb</option>
+              <option value="cc">cc</option>
+              <option value="dd">dd</option>
+              <option value="ee">ee</option>
+            </select>
+          </div>
+        </div> -->
+
+        <div class="form-floor">
+          <div class="floor-group">
+            <select id="floor" name="floor">
+              <option value="">フロア</option>
+              <option value="1F">1F</option>
+              <option value="2F">2F</option>
+              <option value="3F">3F</option>
+              <option value="4F">4F</option>
+              <option value="5F">5F</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="floor-info">
+        <div class="title-bar">
+          <h1 class="location-title-info" id="titleText"> 3F </h1>
+        </div>
+
+        <div class="floor-container">
+          <div class="img-floor">
+            <img id="floorImage" src="img/floor.png" alt="floor">
+          </div>
+
+          <table class="sList-table" id="areaList">
+            <thead>
+              <tr><th>リスト</th></tr>
+            </thead>
+            <tbody>
+              <tr><td data-area="A">A</td></tr>
+              <tr><td data-area="B">B</td></tr>
+              <tr><td data-area="C">C</td></tr>
+              <tr><td data-area="D">D</td></tr>
+              <tr><td data-area="E">E</td></tr>
+              <tr><td data-area="F">F</td></tr>
+              <tr><td data-area="G">G</td></tr>
+              <tr><td data-area="H">H</td></tr>
+              <tr><td data-area="I">I</td></tr>
+              <tr><td data-area="J">J</td></tr>
+              <tr><td data-area="K">K</td></tr>
+              <tr><td data-area="L">L</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <aside class="panel panel-right">
+      <button class="back-btn" id="closeRightBtn" title="戻る">
+        <img src="img/arrow.png" alt="戻る">
+      </button>
+
+      <div class="search-panel">
+        <div class="form-block">
+          <select id="building2" name="building2">
+            <option value="">建物</option>
+            <option value="aa">aa</option>
+            <option value="bb">bb</option>
+            <option value="cc">cc</option>
+            <option value="dd">dd</option>
+            <option value="ee">ee</option>
+          </select>
+        </div>
+
+        <div class="form-block">
+          <select id="floor2" name="floor2">
+            <option value="">フロア</option>
+            <option value="1F">1F</option>
+            <option value="2F">2F</option>
+            <option value="3F">3F</option>
+            <option value="4F">4F</option>
+            <option value="5F">5F</option>
+          </select>
+        </div>
+
+        <div class="form-block">
+          <select id="numberSelect" name="numberSelect">
+            <option value="">番号</option>
+            <option value="1">1</option><option value="2">2</option>
+            <option value="3">3</option><option value="4">4</option>
+            <option value="5">5</option>
+          </select>
+        </div>
+
+        <div class="form-block">
+          <input type="text" id="productCode" name="productCode" placeholder="商品コード">
+        </div>
+
+        <div class="form-block">
+          <select id="categorySelect" name="categorySelect">
+            <option value="">カテゴリー</option>
+            <option value="a">a</option><option value="b">b</option>
+            <option value="c">c</option><option value="d">d</option>
+            <option value="e">e</option>
+          </select>
+        </div>
+
+        <div class="form-block">
+          <select id="itemSelect" name="itemSelect">
+            <option value="">品目</option>
+            <option value="aa">aa</option><option value="bb">bb</option>
+            <option value="cc">cc</option><option value="dd">dd</option>
+            <option value="ee">ee</option>
+          </select>
+        </div>
+
+        <div class="form-block">
+          <input type="text" id="productName" name="productName" placeholder="商品名">
+        </div>
+
+        <div class="form-block search-button">
+          <button id="searchBtn" class="search-btn">検索</button>
+        </div>
+      </div>
+
+      <table class="result-table table-fill" id="resultTable">
+        <thead>
+          <tr>
+            <th></th>
+            <th>商品コード</th>
+            <th>カテゴリー</th>
+            <th>品目</th>
+            <th>商品名</th>
+            <th>建物</th>
+            <th>階</th>
+            <th>エリア</th>
+            <th>番号</th>
+            <th>価格</th>
+            <th>製造会社</th>
+            <th>数量</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><input type="radio" name="pick" value="P001"></td>
+            <td>P001</td>
+            <td>文具</td>
+            <td>ペン</td>
+            <td>ボールペン</td>
+            <td>aaビル</td>
+            <td>3F</td>
+            <td>A</td>
+            <td>3</td>
+            <td>120</td>
+            <td>ABC社</td>
+            <td>50</td>
+          </tr>
+          <tr>
+            <td><input type="radio" name="pick" value="P002"></td>
+            <td>P002</td>
+            <td>文具</td>
+            <td>ノート</td>
+            <td>スケッチブック</td>
+            <td>aaビル</td>
+            <td>3F</td>
+            <td>B</td>
+            <td>7</td>
+            <td>300</td>
+            <td>XYZ社</td>
+            <td>20</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div id="pagination" class="pagination"></div>
+
+      <div class="btn-container">
+        <button id="createBtn" class="create-btn">登録</button>
+      </div>
+    </aside>
+  </div>
+
+  <div class="modal-overlay" id="formModal" aria-hidden="true">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title" id="modalTitle">登録</div>
+        <button class="modal-close" id="modalCloseBtn" type="button">閉じる</button>
+      </div>
+      <div class="modal-body">
+        <iframe id="formFrame" title="asset form"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const layout = document.getElementById('layout');
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("mode") === "split") layout.classList.add("show-list");
+
+    const floorImage = document.getElementById('floorImage');
+    if (floorImage) floorImage.addEventListener('click', () => layout.classList.add('show-list'));
+    const closeRightBtn = document.getElementById('closeRightBtn');
+    if (closeRightBtn) closeRightBtn.addEventListener('click', () => layout.classList.remove('show-list'));
+
+    const modal = document.getElementById('formModal');
+    const frame = document.getElementById('formFrame');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalCloseBtn = document.getElementById('modalCloseBtn');
+
+    function openForm(mode, data) {
+      const qs = new URLSearchParams({ mode });
+      if (data && typeof data === 'object') {
+        Object.entries(data).forEach(([k, v]) => {
+          if (v !== undefined && v !== null) qs.append(k, String(v));
+      document.body.classList.add('no-scroll');  
+        });
+      }
+      frame.src = 'asset_form.html?' + qs.toString();
+      modalTitle.textContent = mode === 'edit' ? '編集' : '登録';
+      modal.classList.add('show');
+      modal.setAttribute('aria-hidden', 'false');
+    }
+
+    function closeForm() {
+      modal.classList.remove('show');
+      modal.setAttribute('aria-hidden', 'true');
+      frame.src = 'about:blank';
+      document.body.classList.remove('no-scroll');
+    }
+
+    modalCloseBtn.addEventListener('click', closeForm);
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && modal.classList.contains('show')) closeForm(); });
+    modal.addEventListener('click', (e) => { if (e.target === modal) closeForm(); });
+
+    function rowToData(tr) {
+      const td = tr.querySelectorAll('td');
+      return {
+        product_code: td[1]?.textContent.trim(),
+        category: td[2]?.textContent.trim(),
+        item: td[3]?.textContent.trim(),
+        product_name: td[4]?.textContent.trim(),
+        building: td[5]?.textContent.trim(),
+        floor: td[6]?.textContent.trim(),
+        area: td[7]?.textContent.trim(),
+        number: td[8]?.textContent.trim(),
+        price: td[9]?.textContent.trim(),
+        manufacturer: td[10]?.textContent.trim(),
+        quantity: td[11]?.textContent.trim()
+      };
+    }
+
+    document.getElementById('createBtn').addEventListener('click', () => {
+      const building = document.getElementById('building')?.value || '';
+      const floor = document.getElementById('floor')?.value || '';
+      openForm('create', { building, floor });
+    });
+
+    document.getElementById('resultTable').addEventListener('change', (e) => {
+      if (e.target && e.target.name === 'pick') {
+        const tr = e.target.closest('tr');
+        const data = rowToData(tr);
+        openForm('edit', data);
+      }
+    });
+
+    document.getElementById('areaList').addEventListener('click', (e) => {
+      const cell = e.target.closest('td');
+      if (!cell) return;
+      const area = cell.getAttribute('data-area') || cell.textContent.trim();
+      layout.classList.add('show-list');
+      document.getElementById('categorySelect').value = '';
+      document.getElementById('itemSelect').value = '';
+      document.getElementById('productName').value = '';
+      const rows = document.querySelectorAll('#resultTable tbody tr');
+      rows.forEach(r => {
+        const a = r.children[7]?.textContent.trim();
+        r.style.display = !area || a === area ? '' : 'none';
+      });
+    });
+  </script>
+</body>
+</html>
