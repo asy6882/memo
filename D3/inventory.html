@@ -4,18 +4,27 @@
 <head>
   <meta charset="UTF-8">
   <title>在庫フロア</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="css/style2.css">
+  <style>
+    .img-floor img {
+      cursor: pointer;
+    }
+  </style>
 </head>
 
 <body>
   <div class="top-bar">
-    <span>ID: ____ </span>
-    <span>名前: ____</span>
-    <span>
-      <div class="btn-logout">
-        <button type="button" id="logoutBtn" onclick="location.href='login.html'">LOGOUT</button>
-      </div>
-    </span>
+    <div class="top-left">
+      <button class="logo-img" onclick="location.href='menu.html'">
+        <img src="img\logo.png">
+      </button>
+    </div>
+    <div class="top-right">
+      <span>ID : A1234</span>
+      <span>名前 : アンスヨン</span>
+      <button class="logoutBtn" type="button" onclick="location.href='login.html'">LOGOUT</button>
+    </div>
   </div>
 
   <div class="layout" id="layout">
@@ -54,9 +63,9 @@
 
       <div class="floor-info">
         <div class="title-bar">
-          <h1 class="location-title-info" id="titleText"> 3F </h1> 
+          <h1 class="location-title-info" id="titleText"> 3F </h1>
         </div>
-        <h3 class="location-area-info">選択したエリア: 1</h3>
+        <h3 class="location-area-info">選択した区域: 1</h3>
 
 
         <div class="floor-container">
@@ -107,14 +116,7 @@
 
       <div class="search-panel">
         <div class="form-block">
-          <select id="building2" name="building2">
-            <option value="">建物</option>
-            <option value="aa">aa</option>
-            <option value="bb">bb</option>
-            <option value="cc">cc</option>
-            <option value="dd">dd</option>
-            <option value="ee">ee</option>
-          </select>
+          <input type="text" id="productCode" name="productCode" placeholder="位置コード">
         </div>
 
         <div class="form-block">
@@ -220,68 +222,185 @@
             <td>XYZ社</td>
             <td>20</td>
           </tr>
+          <tr>
+            <td><input type="radio" name="pick" value="P002"></td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+          </tr>
+          <tr>
+            <td><input type="radio" name="pick" value="P002"></td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+          </tr>
+          <tr>
+            <td><input type="radio" name="pick" value="P002"></td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+          </tr>
+          <tr>
+            <td><input type="radio" name="pick" value="P002"></td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+          </tr>
+          <tr>
+            <td><input type="radio" name="pick" value="P002"></td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+          </tr>
+          <tr>
+            <td><input type="radio" name="pick" value="P002"></td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+          </tr>
+          <tr>
+            <td><input type="radio" name="pick" value="P002"></td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+          </tr>
+          <tr>
+            <td><input type="radio" name="pick" value="P002"></td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+          </tr>
         </tbody>
       </table>
 
-      <div id="pagination" class="pagination"></div>
+      <div id="pagination" class="pagination">
+        <h3>
+          << < 1 2 3 4 5> >>
+        </h3>
+      </div>
 
-      <div class="btn-container">
-        <button id="createBtn" class="create-btn">登録</button>
+      <div class="list-btn-section">
+        <div class="btn-container">
+          <button id="createBtn" class="create-btn" onclick="location.href='asset_form.html'">登録</button>
+        </div>
+        <div class="btn-container">
+          <button id="exportBtn" class="export-btn">出力</button>
+        </div>
       </div>
     </aside>
   </div>
 
-  <div class="modal-overlay" id="formModal" aria-hidden="true">
-    <div class="modal-card">
-      <div class="modal-header">
-        <div class="modal-title" id="modalTitle">登録</div>
-        <button class="modal-close" id="modalCloseBtn" type="button">閉じる</button>
-      </div>
-      <div class="modal-body">
-        <iframe id="formFrame" title="asset form"></iframe>
-      </div>
-    </div>
-  </div>
-</body>
-<script>
+  <script>
     const layout = document.getElementById('layout');
     const params = new URLSearchParams(window.location.search);
     if (params.get("mode") === "split") layout.classList.add("show-list");
 
-    const floorImage = document.getElementById('floorImage');
-    if (floorImage) floorImage.addEventListener('click', () => layout.classList.add('show-list'));
-    const closeRightBtn = document.getElementById('closeRightBtn');
-    if (closeRightBtn) closeRightBtn.addEventListener('click', () => layout.classList.remove('show-list'));
+    document.addEventListener('DOMContentLoaded', () => {
+      const floorImage = document.getElementById('floorImage');
+      const closeRightBtn = document.getElementById('closeRightBtn');
+      floorImage?.addEventListener('click', () => layout?.classList.add('show-list'));
+      closeRightBtn?.addEventListener('click', () => layout?.classList.remove('show-list'));
+    });
 
-    const modal = document.getElementById('formModal');
-    const frame = document.getElementById('formFrame');
-    const modalTitle = document.getElementById('modalTitle');
-    const modalCloseBtn = document.getElementById('modalCloseBtn');
+    function getCurrentState() {
+      const byId = (id) => document.getElementById(id);
+      return {
 
-    function openForm(mode, data) {
-      const qs = new URLSearchParams({ mode });
-      if (data && typeof data === 'object') {
-        Object.entries(data).forEach(([k, v]) => {
-          if (v !== undefined && v !== null) qs.append(k, String(v));
-          document.body.classList.add('no-scroll');
-        });
-      }
-      frame.src = 'asset_form.html?' + qs.toString();
-      modalTitle.textContent = mode === 'edit' ? '編集' : '登録';
-      modal.classList.add('show');
-      modal.setAttribute('aria-hidden', 'false');
+        floor: byId('floor')?.value || '',
+        floor2: byId('floor2')?.value || '',
+        number: byId('numberSelect')?.value || '',
+        // location_code: byId('locationCodeInput')?.value?.trim() || '',
+        product_code: byId('productCodeSearch')?.value?.trim() || '',
+        category: byId('categorySelect')?.value || '',
+        item: byId('itemSelect')?.value || '',
+        product_name: byId('productName')?.value?.trim() || ''
+      };
     }
 
-    function closeForm() {
-      modal.classList.remove('show');
-      modal.setAttribute('aria-hidden', 'true');
-      frame.src = 'about:blank';
-      document.body.classList.remove('no-scroll');
+    function toQuery(obj) {
+      const qs = new URLSearchParams();
+      Object.entries(obj).forEach(([k, v]) => {
+        if (v !== undefined && v !== null && String(v).trim() !== '') {
+          qs.append(k, String(v));
+        }
+      });
+      return qs.toString();
     }
 
-    modalCloseBtn.addEventListener('click', closeForm);
-    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && modal.classList.contains('show')) closeForm(); });
-    modal.addEventListener('click', (e) => { if (e.target === modal) closeForm(); });
+    function goForm(mode, extra) {
+      const base = getCurrentState();
+      const payload = { mode, ...base, ...(extra || {}) };
+      const query = toQuery(payload);
+      location.href = 'asset_form.html?' + query;
+    }
+
+    document.getElementById('createBtn').addEventListener('click', () => {
+      goForm('create');
+    });
 
     function rowToData(tr) {
       const td = tr.querySelectorAll('td');
@@ -300,35 +419,14 @@
       };
     }
 
-    document.getElementById('createBtn').addEventListener('click', () => {
-      const building = document.getElementById('building')?.value || '';
-      const floor = document.getElementById('floor')?.value || '';
-      openForm('create', { building, floor });
-    });
-
     document.getElementById('resultTable').addEventListener('change', (e) => {
       if (e.target && e.target.name === 'pick') {
         const tr = e.target.closest('tr');
-        const data = rowToData(tr);
-        openForm('edit', data);
+        const row = rowToData(tr);
+        goForm('edit', row);
       }
-    });
-
-    document.getElementById('areaList').addEventListener('click', (e) => {
-      const cell = e.target.closest('td');
-      if (!cell) return;
-      const area = cell.getAttribute('data-area') || cell.textContent.trim();
-      layout.classList.add('show-list');
-      document.getElementById('categorySelect').value = '';
-      document.getElementById('itemSelect').value = '';
-      document.getElementById('productName').value = '';
-      const rows = document.querySelectorAll('#resultTable tbody tr');
-      rows.forEach(r => {
-        const a = r.children[7]?.textContent.trim();
-        r.style.display = !area || a === area ? '' : 'none';
-      });
     });
   </script>
 </body>
-</html>
 
+</html>
