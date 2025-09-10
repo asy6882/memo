@@ -5,38 +5,82 @@ body {
 	background-color: #f9f9f9;
 }
 
+/*top-bar*/
 .top-bar {
-	display: flex;
-	justify-content: flex-end;
-	font-size: 14px;
-	position: sticky;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 40px;
-	padding: 10px;
-	background: linear-gradient(180deg, #ffffff 0%, #dfe2e8 100%);
-	z-index: 1000;
-	align-items: center;
+  display: flex;
+  justify-content: space-between; 
+  align-items: center;
+  font-size: 14px;
+  position: sticky;
+  top: 0;
+  left: 0;
+  width: 100%;
+  padding: 10px clamp(12px, 2vw, 20px); 
+  /* background: linear-gradient(180deg, #ffffff 0%, #dfe2e8 100%); */
+  background-color: #fff;
+  z-index: 1000;
+  border-bottom: 1px solid #e5e7eb;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+  gap: 12px; 
+}
+
+.top-left,
+.top-right {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-right: 20px;
+}
+
+.logo-img {
+  border: none;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.logo-img img {
+  display: block;
+  width: 130px;  
+  height: auto; 
+}
+
+.top-right span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .top-bar span {
-	margin-left: 20px;
+  margin-left: 20px;
 }
 
-.btn-logout button {
-	background: #c3c8de;
-	border: 1px solid #364173;
-	color: #000000;
-	padding: 6px;
-	border-radius: 8px;
-	cursor: pointer;
+/*top-bar-btn*/
+.logoutBtn {
+	box-shadow: 3px 4px 0px 0px #ffffff;
+	background:linear-gradient(to bottom, #ededed 5%, #dfdfdf 100%);
+	background-color:#ededed;
+	border-radius:15px;
+	border:1px solid #dcdcdc;
+	display:inline-block;
+	cursor:pointer;
+	color:#494949;
+	font-family:Arial;
+	font-size:12px;
+	padding:7px 18px;
+	text-decoration:none;
+	text-shadow:0px 1px 0px #ffffff;
 	margin-right: 20px;
-	transition: transform .15s ease, box-shadow .15s ease;
+	font-weight: bold;
 }
-
-.btn-logout button:active {
-	transform: scale(.98);
+.logoutBtn:hover {
+	background:linear-gradient(to bottom, #dfdfdf 5%, #ededed 100%);
+	background-color:#dfdfdf;
+}
+.logoutBtn:active {
+	position:relative;
+	top:1px;
 }
 
 
@@ -47,7 +91,7 @@ body {
 
 .img-menu {
 	width: 100vw;
-	height: 580px;
+	height: 550px;
 	overflow: hidden;
 	margin-left: calc(50% - 50vw);
 	margin-right: calc(50% - 50vw);
@@ -93,10 +137,7 @@ body {
 
 #app { position: fixed; inset: 0; background: linear-gradient(#ffffff, #35385b); }
 
-.btn-list {
-	text-align: center;
-	margin-top: 10px;
-}
+
 
 button:hover {
 	cursor: pointer;
@@ -108,21 +149,29 @@ button:hover {
 	margin-top: 15px;
 	display: flex;
 	justify-content: center;
+	flex-wrap: nowrap; 
+}
+
+.btn-list {
+	text-align: center;
+	margin-top: 0;
+	
 }
 
 .btn-list button {
-	width: 250px;
+	width: 150px;
 	height: 60px;
 	box-sizing: border-box;
 	padding: 5px 15px;
-	margin: 20px 80px;
+	margin: 20px 20px;
 	display: inline-flex;
-	font-size: 18px;
+	font-size: 16px;
 	outline: none;
 	color: #fff;
 	border-radius: 40px;
 	justify-content: center;
 	align-items: center;
+	
 }
 
 #Picton {
@@ -160,6 +209,7 @@ button:hover {
 .tooltip {
 	position: fixed;
 	pointer-events: none;
+	/* 마우스 이벤트 통과 */
 	background: rgba(39, 39, 39, 0.9);
 	color: #fff;
 	padding: 6px 10px;
@@ -168,6 +218,7 @@ button:hover {
 	z-index: 9999;
 	white-space: nowrap;
 	transform: translate(10px, 10px);
+	/* 커서 옆 오프셋 */
 	opacity: 0;
 	transition: opacity 0.15s;
 }
