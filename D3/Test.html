@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <title>Simple 3D Building</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    html, body { height: 100%; margin: 0; }
+    /* 캔버스를 전 화면으로, 넘치지 않게 */
+    #app { position: fixed; inset: 0; background: linear-gradient(#e8f0ff, #ffffff); }
+  </style>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
+  
+</head>
+<body>
+  <div id="app"></div>
+
+  <!-- ESM(모듈) 스크립트 -->
+  <script type="module" src="./Test.js"></script>
+</body>
+</html>

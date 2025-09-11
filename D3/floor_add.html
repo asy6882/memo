@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="css\style4.css" />
+</head>
+
+<body>
+    <div class="top-bar">
+        <div class="top-left">
+            <button class="logo-img" onclick="location.href='menu.html'">
+                <img src="img\logo.png">
+            </button>
+        </div>
+        <div class="top-right">
+            <span>ID : A1234</span>
+            <span>名前 : アンスヨン</span>
+            <button class="logoutBtn" type="button" onclick="location.href='login.html'">LOGOUT</button>
+        </div>
+    </div>
+
+    <div class="floor-add-container">
+          <input type="text" id="floor-add" name="floor-add" placeholder="フロア入力">
+          <button id="floor-add-btn" class="custom-btn btn-1">確認</button>
+    </div>
+
+    <h3 class="text-notice">
+        ー地上階は[1F]、地下階は[B1]の形式で入力してください。</br>
+        ー画像をアップロードして、登録したいエリアの頂点をクリックします。</br>
+        ーエリアの名前を入力して、保存ボタンを押します。</br>
+        ーすべてのエリアを登録した後は、完了ボタンを押してください。
+    </h3>
+
+    <div class="area-add-container">
+        <div class="toolbar">
+            <input id="fileInput" type="file" accept="image/*" />
+            <input id="regionName" type="text" placeholder="エリア名入力" />
+            <button id="saveRegionBtn" disabled>保存</button>
+        </div>
+
+        <div class="wrap">
+            <div class="stage" id="stage">
+                <div class="stage-inner" id="stageInner">
+                    <img id="img" alt="イメージを登録してください。" />
+                    <svg id="svg"></svg>
+                    <div id="floatConfirm" class="float-confirm">
+                        <button id="confirmBtn" type="button">確定</button>
+                        <button id="cancelBtn" type="button">キャンセル</button>
+                        <span id="snapHint" class="muted" style="display:none;">始点をクリック</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel-floor">
+                <div class="kv mono">
+                    <span class="label">原本サイズ</span><span id="naturalSize">-</span>
+                    <span class="label">点数</span><span id="ptCount">0</span>
+                    <span class="label">最後(px)</span><span id="lastPx">-</span>
+                    <span class="label">最後(%)</span><span id="lastPct">-</span>
+                </div>
+
+                <div class="row">
+                    <button id="undoBtn" type="button" disabled>最後の点を取り消す</button>
+                    <button id="clearPtsBtn" type="button" disabled>現在の点をすべて削除</button>
+                    <button id="clearAllBtn" type="button" disabled>保存された区域をすべて削除</button>
+                </div>
+
+                <!-- <h4>座標データ(JSON)</h4>
+                <textarea id="jsonText" class="mono" readonly placeholder='[{"name":"A","points":[...]}]'></textarea> -->
+                <!-- <div class="row">
+                    <button id="copyJsonBtn" type="button" disabled>JSONコピー</button>
+                    <button id="downloadJsonBtn" type="button" disabled>JSONダウンロード</button>
+                    <label class="pill">JSON読み込み
+                        <input id="importJsonInput" type="file" accept="application/json" style="display:none;">
+                    </label>
+                </div> -->
+
+                <h4 style="margin-top:14px;">保存されたエリア</h4>
+                <div id="regionList" class="list"></div>
+                <button id="downloadJsonBtn" class="custom-btn btn-1" type="button" disabled>完了</button>
+            </div>
+        </div>
+    </div>
+
+
+    <script src="js\floor_add.js"></script>
+
+</body>
+
+</html>
