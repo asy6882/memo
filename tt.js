@@ -3,7 +3,7 @@ import { OrbitControls } from 'https://unpkg.com/three@0.160.0/examples/jsm/cont
 
 const container = document.getElementById('viewer');
 
-// 렌더러/씬/카메라
+// ───────── Renderer / Scene / Camera ─────────
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -16,32 +16,49 @@ container.appendChild(renderer.domElement);
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xf3f6fa);
 
-const camera = new THREE.PerspectiveCamera(55, container.clientWidth / container.clientHeight, 0.1, 5000);
-camera.position.set(180, 240, 300);
+const camera = new THREE.PerspectiveCamera(
+  55,
+  container.clientWidth / container.clientHeight,
+  0.1,
+  5000
+);
+camera.position.set(180, 240, 300);        // 요청한 무빙 느낌의 기본 포지션
 
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.target.set(0, 60, 0);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
 controls.update();
 
 scene.add(new THREE.HemisphereLight(0xffffff, 0x667788, 0.7));
 
-// ===== 데이터 =====
-const baseHeight = 600;
-let rawData = [
-  [471, 110], [833, 110], [833, 154], [515, 154], [515, 213], [739, 213], [739, 185], [913, 185],
-  [955, 90], [997, 185], [1012, 185], [1012, 348], [818, 348], [818, 353], [815, 365], [811, 378],
-  [805, 389], [797, 400], [787, 410], [777, 419], [765, 426], [753, 432], [739, 436], [725, 439],
-  [711, 439], [697, 439], [683, 436], [670, 432], [658, 426], [646, 419], [635, 410], [626, 400],
-  [618, 389], [612, 378], [607, 365], [605, 353], [604, 340], [605, 327], [607, 314], [612, 301],
-  [618, 290], [626, 279], [635, 269], [646, 260], [650, 258], [471, 258]
-];
+// ───────── 데이터(좌표만) 로드 ─────────
+// draw 페이지에서 저장 형식:
+// sessionStorage.setItem('floorCoordsPayload', JSON.stringify({ coords: [[x,y],...], canvas:{ w:1600, h:1000 }, ts: ... }))
+let baseHeight = 600;
+let rawData = null; // [[x,y], ...]
 
+try {
+  const raw = sessionStorage.getItem('floorCoordsPayload');
+  if (raw) {
+    const payload = JSON.parse(raw);
+    if (payload?.canvas?.h) baseHeight = payload.canvas.h;
+    if (Array.isArray(payload?.coords) && payload.coords.length >= 3) {
+      rawData = payload.coords;
+    }
+  }
+} catch (e) {
+  console.warn('coords load failed:', e);
+}
+
+// ───────── 빌딩 그룹 ─────────
 const buildingGroup = new THREE.Group();
+buildingGroup.name = 'buildingGroup';
 scene.add(buildingGroup);
 
 const WALLS_GROUP_NAME = 'wallsGroup';
 
-// ===== 모드 & UI =====
+// ───────── 모드 & UI ─────────
 let mode = 'img';
 const btnPrev = document.getElementById('btnPrev');
 const btnNext = document.getElementById('btnNext');
@@ -58,13 +75,18 @@ function setMode(next) {
 btnPrev.addEventListener('click', () => { if (mode === 'img') window.location.href = PREV_PAGE_URL; else setMode('img'); });
 btnNext.addEventListener('click', () => { if (mode === 'img') setMode('floor'); else window.location.href = NEXT_PAGE_URL; });
 
-// ===== 상태값 =====
+// ───────── 상태값 ─────────
 let buildingBox = new THREE.Box3();
 let baseY = 0, roofY = 0;
 let userBoundaries = [];
 let boundaryLinesGroup = null;
 let footprintTemplate = null;
 let floorWorldY = 0;
+const BUILDING_ID = 'B001';
+const FACADE_MAP_STORAGE_KEY = `facadeMap:${BUILDING_ID}`;
+const facadeRegistry = new Map();
+const usedImages = new Map();
+
 
 function updateBuildingBox() {
   buildingBox.setFromObject(buildingGroup);
@@ -72,9 +94,7 @@ function updateBuildingBox() {
   roofY = buildingBox.max.y;
 }
 
-// ====== 코너/구간/리본 유틸 ======
-
-// 직선에서만 코너로 잡고, 곡선은 코너로 보지 않음
+// ───────── 코너/구간/리본 유틸 ─────────
 function findCornersStraightOnly(pts, angleMarginDeg = 25) {
   const N = pts.length;
   const corners = [0];
@@ -84,18 +104,13 @@ function findCornersStraightOnly(pts, angleMarginDeg = 25) {
     const v1 = new THREE.Vector2(a.x - b.x, a.y - b.y).normalize();
     const v2 = new THREE.Vector2(c.x - b.x, c.y - b.y).normalize();
     const dot = THREE.MathUtils.clamp(v1.dot(v2), -1, 1);
-    const deg = THREE.MathUtils.radToDeg(Math.acos(dot)); // 0~180
-
-    // 180°에 가까우면 직선 → 코너 아님
-    // 꺾임이 큰 곳만(= 180 - margin 보다 작으면) 코너로 간주
+    const deg = THREE.MathUtils.radToDeg(Math.acos(dot));
     if (deg < (180 - angleMarginDeg)) corners.push(i);
   }
   return [...new Set(corners)].sort((a, b) => a - b);
 }
-
 function sharpestCornerIndex(pts) {
-  const N = pts.length;
-  let best = 0, bestDeg = 180;
+  let best = 0, bestDeg = 180, N = pts.length;
   for (let i = 0; i < N; i++) {
     const im1 = (i - 1 + N) % N, ip1 = (i + 1) % N;
     const b = pts[i], a = pts[im1], c = pts[ip1];
@@ -106,30 +121,24 @@ function sharpestCornerIndex(pts) {
   }
   return best;
 }
-
-
-// 코너가 0~1개면 전체 외곽 1구간, 그 외엔 인접 코너쌍으로 구간
 function toFacadeRanges(N, cornerIdxs) {
-  if (cornerIdxs.length <= 1) return [[0, 0]]; // e==s → 전체 루프 처리
+  if (cornerIdxs.length <= 1) return [[0, 0]];
   const ranges = [];
   for (let i = 0; i < cornerIdxs.length; i++) {
     const s = cornerIdxs[i];
     const e = cornerIdxs[(i + 1) % cornerIdxs.length];
-    ranges.push([s, e]); // 끝점 포함은 buildRibbonFromRange에서 처리
+    ranges.push([s, e]);
   }
   return ranges;
 }
-
-// 구간 → 리본 BufferGeometry 생성(끝점 포함, e==s면 전체 외곽)
 function buildRibbonFromRange(pts, cx, cz, H, iStart, iEnd, color = 0x9bb0c1) {
   const N = pts.length;
   if (N < 2) return null;
 
-  // 구간 시퀀스 만들기
   const seq = [];
   if (iEnd === iStart) {
     for (let k = 0; k < N; k++) seq.push((iStart + k) % N);
-    seq.push(iStart); // 시작점 다시 포함(닫힘)
+    seq.push(iStart);
   } else {
     let i = iStart;
     seq.push(i);
@@ -137,7 +146,6 @@ function buildRibbonFromRange(pts, cx, cz, H, iStart, iEnd, color = 0x9bb0c1) {
   }
   if (seq.length < 2) return null;
 
-  // 링(바닥/천장)
   const ringBottom = [], ringTop = [];
   for (const idx of seq) {
     const v = pts[idx];
@@ -146,14 +154,6 @@ function buildRibbonFromRange(pts, cx, cz, H, iStart, iEnd, color = 0x9bb0c1) {
     ringTop.push(new THREE.Vector3(x, H, z));
   }
 
-  // 누적 길이(호길이)
-  const cum = [0];
-  for (let i = 0; i < ringBottom.length - 1; i++) {
-    cum.push(cum[i] + ringBottom[i].distanceTo(ringBottom[i + 1]));
-  }
-  const totalLen = cum[cum.length - 1] || 1;
-
-  // 버퍼
   const L = ringBottom.length;
   const positions = new Float32Array(L * 2 * 3);
   const uvs = new Float32Array(L * 2 * 2);
@@ -165,13 +165,10 @@ function buildRibbonFromRange(pts, cx, cz, H, iStart, iEnd, color = 0x9bb0c1) {
     positions.set([pB.x, pB.y, pB.z], iBot * 3);
     positions.set([pT.x, pT.y, pT.z], iTop * 3);
 
-    // ★ 핵심: 균등 분포 (시작 0, 끝 1)
     const u = (L === 1) ? 0 : (i / (L - 1));
     uvs.set([u, 0], iBot * 2);
     uvs.set([u, 1], iTop * 2);
   }
-
-
   for (let i = 0; i < L - 1; i++) {
     const a = i * 2, b = i * 2 + 1, c = (i + 1) * 2, d = (i + 1) * 2 + 1;
     indices.push(a, b, d, a, d, c);
@@ -184,14 +181,9 @@ function buildRibbonFromRange(pts, cx, cz, H, iStart, iEnd, color = 0x9bb0c1) {
 
   const mat = new THREE.MeshStandardMaterial({ color, side: THREE.DoubleSide });
   const mesh = new THREE.Mesh(geo, mat);
-  mesh.userData.totalLen = totalLen;
+  mesh.castShadow = true;
   return mesh;
 }
-
-// --------------------------------------------
-
-
-// === 구간 길이 계산(시계방향 링 길이) ===
 function lengthOfRange(pts, s, e) {
   const N = pts.length;
   let i = s, len = 0;
@@ -203,31 +195,18 @@ function lengthOfRange(pts, s, e) {
   }
   return len;
 }
-
-// === 짧은 파사드 병합 ===
-// ranges: [[startIdx, endIdx], ...] (시계방향 연결 순서)
 function mergeShortRanges(pts, ranges, minLen) {
   if (!ranges || ranges.length <= 1) return ranges.slice();
-
   const merged = [];
   let curS = ranges[0][0];
   let curE = ranges[0][1];
-
   for (let k = 1; k < ranges.length; k++) {
     const [, e] = ranges[k];
     const testLen = lengthOfRange(pts, curS, e);
-    if (testLen < minLen) {
-      // 더 붙여서 한 덩어리로 유지
-      curE = e;
-    } else {
-      merged.push([curS, curE]);
-      curS = ranges[k][0];
-      curE = e;
-    }
+    if (testLen < minLen) curE = e;
+    else { merged.push([curS, curE]); curS = ranges[k][0]; curE = e; }
   }
   merged.push([curS, curE]);
-
-  // 마지막 덩어리와 첫 덩어리가 둘 다 짧다면 서로 합침(원형 경계 보정)
   if (merged.length > 1) {
     const first = merged[0];
     const last = merged[merged.length - 1];
@@ -240,7 +219,6 @@ function mergeShortRanges(pts, ranges, minLen) {
   }
   return merged;
 }
-
 function angleAtIndex(pts, i) {
   const N = pts.length;
   const im1 = (i - 1 + N) % N;
@@ -249,43 +227,76 @@ function angleAtIndex(pts, i) {
   const v1 = new THREE.Vector2(a.x - b.x, a.y - b.y).normalize();
   const v2 = new THREE.Vector2(c.x - b.x, c.y - b.y).normalize();
   const dot = THREE.MathUtils.clamp(v1.dot(v2), -1, 1);
-  return THREE.MathUtils.radToDeg(Math.acos(dot)); // 0°(직선) ~ 180°
+  return THREE.MathUtils.radToDeg(Math.acos(dot));
 }
-
-
-
 function mergeFirstLastIfSmooth(pts, ranges, smoothAngleDeg = 15) {
   if (!ranges || ranges.length < 2) return ranges;
-
   const last = ranges[ranges.length - 1];
   const first = ranges[0];
-
-  // last의 끝점 == first의 시작점에서의 각도(직선이면 ~180°)
   const junctionIdx = last[1];
   const deg = angleAtIndex(pts, junctionIdx);
-
-  // ✅ 직선에 가깝다면(= 180°에 근접) 병합
-  // 예: smoothAngleDeg=15 → 165° 이상이면 병합
   if (deg > (180 - smoothAngleDeg)) {
-    const merged = ranges.slice(1); // 첫 요소를 덮어쓸 예정
+    const merged = ranges.slice(1);
     merged[0] = [last[0], first[1]];
     return merged;
   }
-
   return ranges;
 }
-
 function rotateArray(arr, startIdx) {
   const N = arr.length, out = new Array(N);
   for (let i = 0; i < N; i++) out[i] = arr[(startIdx + i) % N];
   return out;
 }
 
+// ───────── 자동 프레이밍 ─────────
+function autoFrame(object, { fitOffset = 1.25 } = {}) {
+  if (!object) return;
+  const box = new THREE.Box3().setFromObject(object);
+  if (!isFinite(box.min.x) || !isFinite(box.max.x)) return;
 
+  const center = new THREE.Vector3();
+  const size = new THREE.Vector3();
+  box.getCenter(center);
+  box.getSize(size);
 
+  const sphere = new THREE.Sphere();
+  box.getBoundingSphere(sphere);
 
-// ====== 메인 빌드 ======
-// --- 수정본: buildFromPolygon ---
+  const fovV = THREE.MathUtils.degToRad(camera.fov);
+  const fovH = 2 * Math.atan(Math.tan(fovV / 2) * camera.aspect);
+  const distV = (sphere.radius * fitOffset) / Math.sin(fovV / 2);
+  const distH = (sphere.radius * fitOffset) / Math.sin(fovH / 2);
+  const distance = Math.max(distV, distH);
+
+  const dir = new THREE.Vector3(1, 1, 1).normalize();
+  controls.target.copy(center);
+  camera.position.copy(center).add(dir.multiplyScalar(distance));
+
+  const maxDim = Math.max(size.x, size.y, size.z);
+  camera.near = Math.max(distance / 1000, 0.01);
+  camera.far = distance + maxDim * 20;
+  camera.updateProjectionMatrix();
+  controls.update();
+}
+
+function applyTextureToWall(wall, url, uv = { repeat: [1, 1], offset: [0, 0] }) {
+  new THREE.TextureLoader().load(url, (tex) => {
+    tex.colorSpace = THREE.SRGBColorSpace;
+    tex.wrapS = THREE.ClampToEdgeWrapping;
+    tex.wrapT = THREE.ClampToEdgeWrapping;
+    tex.anisotropy = renderer.capabilities.getMaxAnisotropy?.() || 1;
+    tex.repeat.set(...(uv?.repeat ?? [1, 1]));
+    tex.offset.set(...(uv?.offset ?? [0, 0]));
+    tex.needsUpdate = true;
+
+    wall.material = new THREE.MeshBasicMaterial({
+      map: tex, side: THREE.DoubleSide, color: 0xffffff
+    });
+    wall.userData.tex = { url, uv };
+  });
+}
+
+// ───────── 메인 빌드 ─────────
 function buildFromPolygon(rawData, baseHeight, floors) {
   if (!rawData || rawData.length < 3) return;
 
@@ -294,7 +305,7 @@ function buildFromPolygon(rawData, baseHeight, floors) {
   const UNIT_PER_FLOOR = 15;
   const H = floors * UNIT_PER_FLOOR;
 
-  // px→3D(XZ), y반전
+  // px→3D(XZ), y 반전
   const to3D = (p) => new THREE.Vector2(p.x * PX_TO_UNIT, (baseHeight - p.y) * PX_TO_UNIT);
 
   // 중심 보정 기준
@@ -315,31 +326,33 @@ function buildFromPolygon(rawData, baseHeight, floors) {
   buildingGroup.add(wallsGroup);
   buildingGroup.position.y = -20;
 
-  // --- 파사드별 리본 생성 ---
-  const cornerIdxs = findCornersStraightOnly(pts, 25);  // 20~30 사이로 튜닝
+  // 파사드 리본
+  const cornerIdxs = findCornersStraightOnly(pts, 25);
   let ranges = toFacadeRanges(pts.length, cornerIdxs);
-  ranges = mergeShortRanges(pts, ranges, 50.0); // 짧은 구간 강제 병합 (스케일에 맞춰 크게)
+  ranges = mergeShortRanges(pts, ranges, 50.0);
   ranges = mergeFirstLastIfSmooth(pts, ranges, 15);
-
-  console.log('facade ranges count =', ranges.length, ranges);
-  console.log('ranges after rotate =', ranges.length, ranges);
-
-  // 🔴 중요: 너무 짧은 파사드는 이웃과 병합(예: 3m 미만)
-  const MIN_FACADE_LEN = 3.0; // 필요시 2~5 사이로 조정
 
   let facadeNo = 0;
   for (const [s, e] of ranges) {
     const ribbon = buildRibbonFromRange(pts, cx, cz, H, s, e);
     if (!ribbon) continue;
-
     ribbon.material.color.setHSL((facadeNo % 12) / 12, 0.5, 0.5);
 
+    const facadeId = `F${facadeNo}`;      // ← 안정적인 내부 ID
     ribbon.name = `facade-${facadeNo++}`;
-    ribbon.castShadow = true;
+    ribbon.userData.facadeId = facadeId;
+    ribbon.userData.tex = null;
+
+    // (재생성 시) registry에 기록된 텍스처가 있으면 즉시 재적용
+    const rec = facadeRegistry.get(facadeId);
+    if (rec?.objectUrl || rec?.remoteUrl) {
+      applyTextureToWall(ribbon, rec.objectUrl ?? rec.remoteUrl, rec.uv);
+    }
+
     wallsGroup.add(ribbon);
   }
 
-  // --- 바닥/지붕 ---
+  // 바닥/지붕
   const capShape = new THREE.Shape();
   pts.forEach((v, i) => {
     const x = v.x - cx, z = v.y - cz;
@@ -359,7 +372,7 @@ function buildFromPolygon(rawData, baseHeight, floors) {
 
   wallsGroup.add(floor, roof);
 
-  // 바닥 윤곽선 템플릿(층 경계용) 갱신
+  // 경계 라인 템플릿
   if (footprintTemplate) { footprintTemplate.geometry?.dispose?.(); footprintTemplate = null; }
   const edgesGeo = new THREE.EdgesGeometry(floor.geometry, 1);
   edgesGeo.rotateX(-Math.PI / 2);
@@ -374,20 +387,107 @@ function buildFromPolygon(rawData, baseHeight, floors) {
   updateBuildingBox();
   userBoundaries = userBoundaries.filter(y => y > baseY && y < roofY);
   drawBoundaryLines();
+
+  // 자동 프레이밍
+  autoFrame(buildingGroup, { fitOffset: 1.25 });
+}
+
+function exportFacadeMapping() {
+  const items = [];
+  for (const [facadeId, rec] of facadeRegistry.entries()) {
+    items.push({
+      facadeId,
+      name: rec.name,
+      mime: rec.mime,
+      size: rec.size,
+      lastModified: rec.lastModified,
+      s3Key: rec.s3Key ?? null,
+      uv: rec.uv
+    });
+  }
+  const payload = {
+    version: 1,
+    buildingId: BUILDING_ID,
+    items
+  };
+  return payload;
+}
+
+function downloadFacadeMapping() {
+  const data = JSON.stringify(exportFacadeMapping(), null, 2);
+  const blob = new Blob([data], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `facade-mapping-${BUILDING_ID}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function saveFacadeMappingToLocal() {
+  localStorage.setItem(FACADE_MAP_STORAGE_KEY, JSON.stringify(exportFacadeMapping()));
+}
+
+function loadFacadeMappingFromLocal() {
+  const raw = localStorage.getItem(FACADE_MAP_STORAGE_KEY);
+  if (!raw) return;
+  try {
+    const payload = JSON.parse(raw);
+    if (!payload?.items) return;
+    facadeRegistry.clear();
+    usedImages.clear();
+    for (const it of payload.items) {
+      facadeRegistry.set(it.facadeId, {
+        name: it.name,
+        mime: it.mime,
+        size: it.size,
+        lastModified: it.lastModified,
+        objectUrl: null,      // 로컬 파일 URL은 복원 불가
+        s3Key: it.s3Key ?? null,
+        uv: it.uv ?? { repeat: [1, 1], offset: [0, 0] },
+        remoteUrl: null       // s3Key → presigned URL 받아서 넣을 자리
+      });
+      if (it.name && it.size != null) {
+        usedImages.set(`${it.name}|${it.size}|${it.lastModified ?? 0}`, it.facadeId);
+      }
+    }
+  } catch (e) {
+    console.warn('facade map load failed:', e);
+  }
+}
+
+// 백엔드 업로드 완료 후, 응답의 s3Key를 반영하는 헬퍼
+function setS3KeyForFacade(facadeId, s3Key) {
+  const rec = facadeRegistry.get(facadeId);
+  if (!rec) return;
+  rec.s3Key = s3Key;
+  saveFacadeMappingToLocal();
+}
+
+// presigned URL을 받아 바로 적용하고 싶을 때
+function applyRemoteUrlToFacade(facadeId, remoteUrl) {
+  const wall = getWallsChildren().find(w => w.userData?.facadeId === facadeId);
+  if (!wall) return;
+  const rec = facadeRegistry.get(facadeId) ?? { uv: { repeat: [1, 1], offset: [0, 0] } };
+  rec.remoteUrl = remoteUrl;
+  facadeRegistry.set(facadeId, rec);
+  applyTextureToWall(wall, remoteUrl, rec.uv);
 }
 
 
-// ===== UI/생성 =====
+// ───────── UI: 층수/생성 ─────────
 const floorsInput = document.getElementById('floors');
 const buildBtn = document.getElementById('createBuilding');
+
 function createBuilding() {
+  if (!rawData) return; // 좌표 없으면 아무것도 생성하지 않음(요청사항)
   const floors = Math.max(1, Number(floorsInput.value || 1));
   buildFromPolygon(rawData, baseHeight, floors);
 }
 createBuilding();
+loadFacadeMappingFromLocal();
 buildBtn.addEventListener('click', createBuilding);
 
-// ===== 클릭(텍스처) =====
+// ───────── 텍스처 더블클릭 적용 ─────────
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
 const fileInput = document.getElementById('fileInput');
@@ -404,7 +504,6 @@ function raycast(evt, targets) {
 function getWallsChildren() {
   const g = buildingGroup.getObjectByName(WALLS_GROUP_NAME);
   if (!g) return [];
-  // 파사드 리본만 반환
   return g.children.filter(o => o.name?.startsWith('facade-'));
 }
 function getWallsOnly() { return getWallsChildren(); }
@@ -417,35 +516,48 @@ renderer.domElement.addEventListener('dblclick', (e) => {
   fileInput.value = '';
   fileInput.click();
 });
-
 fileInput.addEventListener('change', (e) => {
   if (mode !== 'img') return;
   const f = e.target.files?.[0];
   if (!f || !pendingWall) return;
 
-  const url = URL.createObjectURL(f);
-  new THREE.TextureLoader().load(url, (tex) => {
-    tex.colorSpace = THREE.SRGBColorSpace;
-    tex.wrapS = THREE.ClampToEdgeWrapping;
-    tex.wrapT = THREE.ClampToEdgeWrapping;
-    tex.anisotropy = renderer.capabilities.getMaxAnisotropy?.() || 1;
+  // ★ 추가: 어떤 벽인지 식별
+  const facadeId = pendingWall.userData?.facadeId;
+  if (!facadeId) {
+    console.warn('facadeId 없음: 매핑을 기록할 수 없습니다.');
+    return;
+  }
 
-    tex.repeat.set(1, 1);
-    tex.offset.set(0, 0);
-    tex.needsUpdate = true;
+  // ★ 추가: 매핑 레코드 생성 & 등록
+  const objectUrl = URL.createObjectURL(f);
+  const rec = {
+    name: f.name,
+    mime: f.type,
+    size: f.size,
+    lastModified: f.lastModified,
+    objectUrl,        // 세션 프리뷰용 (새로고침 후 무효)
+    remoteUrl: null,  // 서버에서 presigned GET 받으면 채움
+    s3Key: null,      // 업로드 완료 후 채움
+    uv: { repeat: [1, 1], offset: [0, 0] }
+  };
+  facadeRegistry.set(facadeId, rec);
 
-    pendingWall.material = new THREE.MeshBasicMaterial({
-      map: tex, side: THREE.DoubleSide, color: 0xffffff, transparent: false, opacity: 1.0
-    });
-    pendingWall = null;
-  });
+  // ★ 기존: 텍스처 적용 (이제 유틸 함수로)
+  applyTextureToWall(pendingWall, objectUrl, rec.uv);
+
+  // ★ 추가: 로컬스토리지 저장(원하면 JSON 내보내기도 가능)
+  saveFacadeMappingToLocal();
+  console.log('SET', facadeId, rec);
+  console.log('REGISTRY size', facadeRegistry.size);
+
+  pendingWall = null;
+  fileInput.value = '';
 });
 
-// ===== 층/경계 =====
+// ───────── 층/경계선 ─────────
 const MIN_GAP = 0.5;
 const SNAP = 0.1;
 const STORAGE_KEY = 'levels:B001';
-
 function snap(v) { return Math.round(v / SNAP) * SNAP; }
 function currentBoundaries() { return [baseY, ...userBoundaries, roofY]; }
 
@@ -477,8 +589,6 @@ function removeBoundaryNear(y) {
   }
   return false;
 }
-
-// 경계선(라인) 그리기 — 기존 로직 유지
 function drawBoundaryLines() {
   if (boundaryLinesGroup) {
     boundaryLinesGroup.traverse(o => { o.geometry?.dispose?.(); o.material?.dispose?.(); });
@@ -489,7 +599,6 @@ function drawBoundaryLines() {
   scene.add(boundaryLinesGroup);
 
   if (!footprintTemplate) return;
-
   const boundaries = currentBoundaries();
   for (const y of boundaries) {
     const line = new THREE.LineSegments(
@@ -501,8 +610,6 @@ function drawBoundaryLines() {
     boundaryLinesGroup.add(line);
   }
 }
-
-// 클릭으로 층 경계 추가/삭제
 renderer.domElement.addEventListener('click', (e) => {
   if (mode !== 'floor') return;
   const hit = raycast(e, getWallsOnly());
@@ -515,23 +622,41 @@ renderer.domElement.addEventListener('click', (e) => {
   if (addBoundary(y)) console.log('경계 추가');
 });
 
-// 저장/초기화 버튼
+
 document.getElementById('btnSaveLevels').addEventListener('click', () => {
-  const payload = { version: 1, buildingId: 'B001', baseY, roofY, userBoundaries: userBoundaries.slice(), boundaries: currentBoundaries() };
+  const payload = {
+    version: 1,
+    buildingId: 'B001',
+    baseY,
+    roofY,
+    userBoundaries: userBoundaries.slice(),
+    boundaries: currentBoundaries()
+  };
+
   localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+
   window.location.href = 'floor_add.html';
 });
+
+
 document.getElementById('btnClearGuides').addEventListener('click', () => {
   if (boundaryLinesGroup) { scene.remove(boundaryLinesGroup); boundaryLinesGroup = null; }
 });
 
-// 리사이즈/렌더
+// ───────── 리사이즈/렌더 ─────────
 window.addEventListener('resize', () => {
   renderer.setSize(window.innerWidth, window.innerHeight);
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
 });
-renderer.setAnimationLoop(() => renderer.render(scene, camera));
+renderer.setAnimationLoop(() => {
+  controls.update();
+  renderer.render(scene, camera);
+});
 
+// 초기 경계 업데이트
 updateBuildingBox();
 drawBoundaryLines();
+
+
+document.getElementById('btnExport').addEventListener('click', () => downloadFacadeMapping());
